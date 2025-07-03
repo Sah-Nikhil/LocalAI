@@ -28,30 +28,30 @@ const data = {
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
-    {
-      title: "Inbox",
-      url: "#",
-      icon: Inbox,
-      isActive: true,
-    },
+    // {
+    //   title: "Inbox",
+    //   url: "#",
+    //   icon: Inbox,
+    //   isActive: true,
+    // },
     {
       title: "Drafts",
       url: "#",
       icon: File,
       isActive: false,
     },
-    {
-      title: "Sent",
-      url: "#",
-      icon: Send,
-      isActive: false,
-    },
-    {
-      title: "Junk",
-      url: "#",
-      icon: ArchiveX,
-      isActive: false,
-    },
+    // {
+    //   title: "Sent",
+    //   url: "#",
+    //   icon: Send,
+    //   isActive: false,
+    // },
+    // {
+    //   title: "Junk",
+    //   url: "#",
+    //   icon: ArchiveX,
+    //   isActive: false,
+    // },
     {
       title: "Trash",
       url: "#",
@@ -221,17 +221,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
         {/* This is the second sidebar */}
         {/* We disable collapsible and let it fill remaining space */}
-        <Sidebar collapsible="none" className="hidden flex-1 md:flex">
+        {/* <Sidebar collapsible="none" className="hidden flex-1 md:flex">
             <SidebarHeader className="gap-3.5 border-b p-4">
             <div className="flex w-full items-center justify-between">
                 <div className="text-foreground text-base font-medium">
                 {activeItem?.title}
-                </div>
+                </div> */}
                 {/* <Label className="flex items-center gap-2 text-sm">
                 <span>Unreads</span>
                 <Switch className="shadow-none" />
                 </Label> */}
-            </div>
+            {/* </div>
             <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
                     tooltip="Quick Create"
@@ -265,7 +265,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarGroupContent>
             </SidebarGroup>
             </SidebarContent>
-        </Sidebar>
+        </Sidebar> */}
         </Sidebar>
     )
 }
