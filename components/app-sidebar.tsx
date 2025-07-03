@@ -59,15 +59,7 @@ const data = {
       isActive: false,
     },
   ],
-  mails: [
-    {
-      name: "William Smith",
-      email: "williamsmith@example.com",
-      subject: "Meeting Tomorrow",
-      date: "July 02, 2025",
-      teaser:
-        "Hi team, just a reminder about our meeting tomorrow at 10 AM.\nPlease come prepared with your project updates.",
-    },
+
     // {
     //   name: "Alice Smith",
     //   email: "alicesmith@example.com",
@@ -140,14 +132,13 @@ const data = {
     //   teaser:
     //     "To celebrate our recent project success, I'd like to organize a team dinner.\nAre you available next Friday evening? Please let me know your preferences.",
     // },
-  ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Note: I'm using state to show active item.
   // IRL you should use the url/router.
     const [activeItem, setActiveItem] = React.useState(data.navMain[0])
-    const [mails, setMails] = React.useState(data.mails)
+    // const [mails, setMails] = React.useState(data.mails)
     const { setOpen } = useSidebar()
 
     return (
@@ -191,17 +182,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             children: item.title,
                             hidden: false,
                         }}
-                        onClick={() => {
-                            setActiveItem(item)
-                            const mail = data.mails.sort(() => Math.random() - 0.5)
-                            setMails(
-                            mail.slice(
-                                0,
-                                Math.max(5, Math.floor(Math.random() * 10) + 1)
-                            )
-                            )
-                            setOpen(true)
-                        }}
+                        // onClick={() => {
+                        //     setActiveItem(item)
+                        //     const mail = data.mails.sort(() => Math.random() - 0.5)
+                        //     setMails(
+                        //     mail.slice(
+                        //         0,
+                        //         Math.max(5, Math.floor(Math.random() * 10) + 1)
+                        //     )
+                        //     )
+                        //     setOpen(true)
+                        // }}
                         isActive={activeItem?.title === item.title}
                         className="px-2.5 md:px-2"
                         >
