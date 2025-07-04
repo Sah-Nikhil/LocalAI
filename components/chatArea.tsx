@@ -14,7 +14,7 @@ export default function MainChatArea() {
       {/* Message input */}
       <div className="flex gap-2 mt-4">
         <Input placeholder="Type your message..." className="flex-1" />
-        <Button>Send</Button>
+        <Button className="bg-accent-foreground">Send</Button>
       </div>
     </div>
   );
