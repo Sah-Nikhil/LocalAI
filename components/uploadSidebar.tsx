@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FileUpload } from "@/components/ui/file-upload"; // Adjust path if needed
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 export default function UploadedFilesSidebar() {
     const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -11,9 +12,15 @@ export default function UploadedFilesSidebar() {
         setUploadedFiles(prev => [...prev, ...files]);
     };
 
+    const handleProcessFiles = () => {
+        // TODO: Add your ingestion logic here (e.g., send files to backend/AI LLM)
+        console.log("Processing files:", uploadedFiles);
+        // Example: call an API or set state to trigger ingestion
+    };
+
     return (
         <div className="w-72 border-l border-border bg-secondary p-4 flex flex-col">
-        <h2 className="text-lg font-semibold mb-4">Uploaded Files</h2>
+        <h2 className="text-lg font-semibold mb-4">Upload Files</h2>
 
         {/* Uploaded files list */}
         <div className="flex-1 overflow-y-auto">
@@ -51,10 +58,19 @@ export default function UploadedFilesSidebar() {
                 </div>
                 </motion.div>
             ))}
+            {/* Process Files Button */}
+                {uploadedFiles.length > 0 && (
+                    <Button
+                        className="mt-4 w-full bg-accent-foreground  text-background font-semibold py-2 px-4 rounded shadow"
+                        onClick={handleProcessFiles}
+                    >
+                        Process Files
+                    </Button>
+                )}
         </div>
 
 
-        {/* 🎉 Your custom animated uploader */}
+        {/* custom animated uploader */}
         <div className="mt-auto">
             <FileUpload onChange={handleFileChange} />
         </div>

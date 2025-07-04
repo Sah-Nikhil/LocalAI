@@ -2,22 +2,22 @@ import { AppSidebar } from "@/components/app-sidebar"
 import MainChatArea from "@/components/chatArea"
 import { ModeToggle } from "@/components/mode-toggle"
 import { ThemeProvider } from "@/components/theme-provider"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+// import {
+//   Breadcrumb,
+//   BreadcrumbItem,
+//   BreadcrumbLink,
+//   BreadcrumbList,
+//   BreadcrumbPage,
+//   BreadcrumbSeparator,
+// } from "@/components/ui/breadcrumb"
+// import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
+//   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import UploadedFilesSidebar from "@/components/uploadSidebar"
-import { Main } from "next/document"
+// import { Main } from "next/document"
 
 export default function Page() {
     return (
@@ -31,13 +31,16 @@ export default function Page() {
         <ThemeProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="bg-background sticky top-0 flex shrink-0 items-center gap-2  border-b p-4">
+                <header className="bg-background sticky top-0 flex shrink-0 items-center gap-2  border-b py-2 px-4">
+                    <span className="text-foreground text-lg font-semibold">
+                    DocChat
+                    </span>
                 {/* <SidebarTrigger className="-ml-1" />
                 <Separator
                     orientation="vertical"
                     className="mr-2 data-[orientation=vertical]:h-4"
                 /> */}
-                <Breadcrumb>
+                {/* <Breadcrumb>
                     <BreadcrumbList>
                     <BreadcrumbItem className="hidden md:block">
                         <BreadcrumbLink href="#">All Inboxes</BreadcrumbLink>
@@ -47,7 +50,7 @@ export default function Page() {
                         <BreadcrumbPage>Inbox</BreadcrumbPage>
                     </BreadcrumbItem>
                     </BreadcrumbList>
-                </Breadcrumb>
+                </Breadcrumb> */}
                 <div className="ml-auto">
                     <ModeToggle/>
                 </div>
