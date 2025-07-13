@@ -1,3 +1,14 @@
+// Delete a chat session by chat_id
+export async function deleteChatSession(chatId: string) {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const res = await fetch(`${backendUrl}/session/${chatId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to delete chat session: ${res.status} ${res.statusText}`);
+  }
+  return await res.json();
+}
 // chatpdf/hooks/useChat.ts
 
 export async function getOrCreateChat(userId: string): Promise<string> {
