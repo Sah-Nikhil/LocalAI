@@ -1,3 +1,4 @@
+// app/dashboard/page.tsx
 import { AppSidebar } from "@/components/app-sidebar"
 import MainChatArea from "@/components/chatArea"
 import { ModeToggle } from "@/components/mode-toggle"
