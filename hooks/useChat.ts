@@ -61,6 +61,7 @@ export async function sendMessage(
   query: string,
   mode: "full" | "search" = "search"
 ): Promise<string> {
+  const userId = process.env.NEXT_PUBLIC_USER_ID || "fallback_u";
   const res = await fetch(`${backendUrl}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -69,6 +70,7 @@ export async function sendMessage(
       conversation_ids: conversationIds,
       query,
       mode,
+      user_id: userId,
     }),
   });
 

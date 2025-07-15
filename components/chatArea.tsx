@@ -14,6 +14,27 @@ export default function MainChatArea() {
     // Use chatId and conversationIds from context
     const { chatId, conversationIds } = useChatContext();
 
+    // Fetch previous messages if chatId exists (on reload)
+    useEffect(() => {
+        if (!chatId) {
+            setMessages([]);
+            return;
+        }
+        // Fetch previous messages from backend
+        (async () => {
+            try {
+                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+                const res = await fetch(`${backendUrl}/session/${chatId}/messages`);
+                if (!res.ok) throw new Error("Failed to fetch messages");
+                const data = await res.json();
+                // Expecting data.messages: [{role: 'user'|'ai', text: string}]
+                setMessages(data.messages || []);
+            } catch (err) {
+                setMessages([]);
+            }
+        })();
+    }, [chatId]);
+
     const handleSend = async () => {
         if (!input.trim()) return;
 

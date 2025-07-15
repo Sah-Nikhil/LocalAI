@@ -153,11 +153,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       // 2. Fetch latest chatId from backend for sync
       const fetchChatId = async () => {
         try {
-          const userId = process.env.NEXT_PUBLIC_USER_ID || "testu1";
+          const USER_ID = process.env.NEXT_PUBLIC_USER_ID || "fallback_u";
           const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
           const res = await fetch(`${backendUrl}/session/chat-session`, {
             method: "POST",
-            body: JSON.stringify({ user_id: userId }),
+            body: JSON.stringify({ user_id: USER_ID }),
             headers: { "Content-Type": "application/json" },
           });
           if (res.ok) {

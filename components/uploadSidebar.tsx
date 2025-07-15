@@ -10,7 +10,7 @@ import { useChatContext } from "@/hooks/useChatContext";
 export default function UploadedFilesSidebar() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const USER_ID = process.env.NEXT_PUBLIC_USER_ID || "testu1";
+  const USER_ID = process.env.NEXT_PUBLIC_USER_ID || "fallback_u";
   const { chatId, setConversationIds } = useChatContext();
 
   // Append new files to the existing list
