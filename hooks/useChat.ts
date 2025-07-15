@@ -1,6 +1,9 @@
+// chatpdf/hooks/useChat.ts
+
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
 // Delete a chat session by chat_id
 export async function deleteChatSession(chatId: string) {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
   const res = await fetch(`${backendUrl}/session/${chatId}`, {
     method: "DELETE",
   });
@@ -9,10 +12,9 @@ export async function deleteChatSession(chatId: string) {
   }
   return await res.json();
 }
-// chatpdf/hooks/useChat.ts
 
+// Get or create a chat session for a user
 export async function getOrCreateChat(userId: string): Promise<string> {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
   const res = await fetch(`${backendUrl}/session/chat-session`, {
     method: "POST",
     body: JSON.stringify({ user_id: userId }),
@@ -28,16 +30,21 @@ export async function getOrCreateChat(userId: string): Promise<string> {
   return data.chat_id;
 }
 
+// Upload a file and store it in Supabase + Qdrant
 export async function uploadFile(file: File, userId: string, chatId: string) {
   const form = new FormData();
   form.append("file", file);
   form.append("user_id", userId);
   form.append("chat_id", chatId);
 
-  const res = await fetch("http://localhost:8000/upload", {
+  const res = await fetch(`${backendUrl}/upload`, {
     method: "POST",
     body: form,
   });
+
+  if (!res.ok) {
+    throw new Error(`Failed to upload file: ${res.status} ${res.statusText}`);
+  }
 
   const data = await res.json();
   return {
@@ -47,16 +54,27 @@ export async function uploadFile(file: File, userId: string, chatId: string) {
   };
 }
 
-export async function sendMessage(chatId: string, conversationIds: string[], query: string) {
-  const res = await fetch("http://localhost:8000/chat", {
+// Send a message to the backend and get a grounded LLM response
+export async function sendMessage(
+  chatId: string,
+  conversationIds: string[],
+  query: string,
+  mode: "full" | "search" = "search"
+): Promise<string> {
+  const res = await fetch(`${backendUrl}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       chat_id: chatId,
       conversation_ids: conversationIds,
       query,
+      mode,
     }),
   });
+
+  if (!res.ok) {
+    throw new Error(`Failed to send message: ${res.status} ${res.statusText}`);
+  }
 
   const data = await res.json();
   return data.answer;

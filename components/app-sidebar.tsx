@@ -3,6 +3,7 @@
 import * as React from "react"
 import { ArchiveX, Command, File, Inbox, PlusCircleIcon, Send, Trash2 } from "lucide-react"
 import { deleteChatSession } from "@/hooks/useChat"
+import { useChatContext } from "@/hooks/useChatContext";
 
 import { NavUser } from "@/components/nav-user"
 import { Label } from "@/components/ui/label"
@@ -37,7 +38,7 @@ const data = {
     // },
     {
       title: "Current Chat",
-      url: "#",
+      url: "/",
       icon: File,
       isActive: false,
     },
@@ -136,6 +137,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { resetSession } = useChatContext();
   // Note: I'm using state to show active item.
   // IRL you should use the url/router.
     const [activeItem, setActiveItem] = React.useState(data.navMain[0])
@@ -222,6 +224,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                               await deleteChatSession(chatId);
                               localStorage.removeItem("chatId");
                               setChatId("");
+                              resetSession(); // clear context state
                               alert("Session deleted.");
                             } catch (err) {
                               alert("Failed to delete session.");

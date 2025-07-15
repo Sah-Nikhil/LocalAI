@@ -5,20 +5,13 @@ import { FileUpload } from "@/components/ui/file-upload";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { getOrCreateChat, uploadFile } from "@/hooks/useChat";
+import { useChatContext } from "@/hooks/useChatContext";
 
 export default function UploadedFilesSidebar() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [chatId, setChatId] = useState<string>("");
   const USER_ID = process.env.NEXT_PUBLIC_USER_ID || "testu1";
-
-  useEffect(() => {
-    async function setupChat() {
-      const id = await getOrCreateChat(USER_ID);
-      setChatId(id);
-    }
-    setupChat();
-  }, []);
+  const { chatId, setConversationIds } = useChatContext();
 
   // Append new files to the existing list
   const handleFileChange = (files: File[]) => {
@@ -28,16 +21,19 @@ export default function UploadedFilesSidebar() {
   const handleProcessFiles = async () => {
     if (!chatId || uploadedFiles.length === 0) return;
     setIsProcessing(true);
+    const newConversationIds: string[] = [];
     try {
       for (const file of uploadedFiles) {
         console.log("Uploading:", file.name);
         try {
           const res = await uploadFile(file, USER_ID, chatId);
+          if (res.conversation_id) newConversationIds.push(res.conversation_id);
           console.log("✅ Uploaded:", res);
         } catch (err) {
           console.error("❌ Upload failed for", file.name, err);
         }
       }
+      setConversationIds(newConversationIds);
       setUploadedFiles([]); // Clear after processing
     } finally {
       setIsProcessing(false);
