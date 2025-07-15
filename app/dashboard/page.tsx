@@ -1,3 +1,4 @@
+// app/dashboard/page.tsx
 import { AppSidebar } from "@/components/app-sidebar"
 import MainChatArea from "@/components/chatArea"
 import { ModeToggle } from "@/components/mode-toggle"
@@ -11,9 +12,11 @@ import { ThemeProvider } from "@/components/theme-provider"
 //   BreadcrumbSeparator,
 // } from "@/components/ui/breadcrumb"
 // import { Separator } from "@/components/ui/separator"
+import { ChatProvider } from "@/hooks/useChatContext";
+import { getOrCreateChat } from "@/hooks/useChat";
 import {
-  SidebarInset,
-  SidebarProvider,
+    SidebarInset,
+    SidebarProvider,
 //   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import UploadedFilesSidebar from "@/components/uploadSidebar"
@@ -21,6 +24,7 @@ import UploadedFilesSidebar from "@/components/uploadSidebar"
 
 export default function Page() {
     return (
+        <ChatProvider>
         <SidebarProvider
         style={
             {
@@ -64,5 +68,6 @@ export default function Page() {
             </SidebarInset>
         </ThemeProvider>
         </SidebarProvider>
+        </ChatProvider>
     )
 }

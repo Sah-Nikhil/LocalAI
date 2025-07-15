@@ -2,6 +2,8 @@
 
 import * as React from "react"
 import { ArchiveX, Command, File, Inbox, PlusCircleIcon, Send, Trash2 } from "lucide-react"
+import { deleteChatSession } from "@/hooks/useChat"
+import { useChatContext } from "@/hooks/useChatContext";
 
 import { NavUser } from "@/components/nav-user"
 import { Label } from "@/components/ui/label"
@@ -35,8 +37,8 @@ const data = {
     //   isActive: true,
     // },
     {
-      title: "Drafts",
-      url: "#",
+      title: "Current Chat",
+      url: "/",
       icon: File,
       isActive: false,
     },
@@ -53,7 +55,7 @@ const data = {
     //   isActive: false,
     // },
     {
-      title: "Trash",
+      title: "Delete Session",
       url: "#",
       icon: Trash2,
       isActive: false,
@@ -135,11 +137,42 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { resetSession } = useChatContext();
   // Note: I'm using state to show active item.
   // IRL you should use the url/router.
     const [activeItem, setActiveItem] = React.useState(data.navMain[0])
     // const [mails, setMails] = React.useState(data.mails)
     const { setOpen } = useSidebar()
+    // Hybrid approach: use chatId from localStorage, but also fetch from backend for sync
+    const [chatId, setChatId] = React.useState<string>("");
+    React.useEffect(() => {
+      // 1. Use localStorage for instant UI
+      const storedChatId = localStorage.getItem("chatId");
+      if (storedChatId) setChatId(storedChatId);
+
+      // 2. Fetch latest chatId from backend for sync
+      const fetchChatId = async () => {
+        try {
+          const USER_ID = process.env.NEXT_PUBLIC_USER_ID || "fallback_u";
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+          const res = await fetch(`${backendUrl}/session/chat-session`, {
+            method: "POST",
+            body: JSON.stringify({ user_id: USER_ID }),
+            headers: { "Content-Type": "application/json" },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.chat_id && data.chat_id !== storedChatId) {
+              setChatId(data.chat_id);
+              localStorage.setItem("chatId", data.chat_id);
+            }
+          }
+        } catch (err) {
+          // Optionally handle error
+        }
+      };
+      fetchChatId();
+    }, []);
 
     return (
         <Sidebar
@@ -182,19 +215,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             children: item.title,
                             hidden: false,
                         }}
-                        // onClick={() => {
-                        //     setActiveItem(item)
-                        //     const mail = data.mails.sort(() => Math.random() - 0.5)
-                        //     setMails(
-                        //     mail.slice(
-                        //         0,
-                        //         Math.max(5, Math.floor(Math.random() * 10) + 1)
-                        //     )
-                        //     )
-                        //     setOpen(true)
-                        // }}
                         isActive={activeItem?.title === item.title}
                         className="px-2.5 md:px-2"
+                        onClick={async () => {
+                          setActiveItem(item);
+                          if (item.title === "Delete Session" && chatId) {
+                            try {
+                              await deleteChatSession(chatId);
+                              localStorage.removeItem("chatId");
+                              setChatId("");
+                              resetSession(); // clear context state
+                              alert("Session deleted.");
+                            } catch (err) {
+                              alert("Failed to delete session.");
+                            }
+                          }
+                        }}
                         >
                         <item.icon />
                         <span>{item.title}</span>
