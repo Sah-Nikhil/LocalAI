@@ -225,7 +225,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                               localStorage.removeItem("chatId");
                               setChatId("");
                               resetSession(); // clear context state
-                              alert("Session deleted.");
+
+                              // Immediately create a new session
+                              const USER_ID = process.env.NEXT_PUBLIC_USER_ID || "fallback_u";
+                              const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+                              const res = await fetch(`${backendUrl}/session/chat-session`, {
+                                method: "POST",
+                                body: JSON.stringify({ user_id: USER_ID }),
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                              });
+                              if (res.ok) {
+                                const data = await res.json();
+                                setChatId(data.chat_id);
+                                localStorage.setItem("chatId", data.chat_id);
+                                alert("Session deleted. New session started.");
+                              } else {
+                                alert("Session deleted. Failed to create new session.");
+                              }
                             } catch (err) {
                               alert("Failed to delete session.");
                             }

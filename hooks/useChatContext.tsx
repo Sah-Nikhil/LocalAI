@@ -34,8 +34,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         const res = await fetch(`${backendUrl}/session/${chatId}/conversations`);
         if (!res.ok) throw new Error("Failed to fetch conversationIds");
         const data = await res.json();
-        // Expecting data.conversation_ids: string[]
-        setConversationIds(data.conversation_ids || []);
+        // Expecting data.files: { conversation_id: string, ... }[]
+        if (Array.isArray(data.files)) {
+          setConversationIds(data.files.map((f: any) => f.conversation_id));
+        } else {
+          setConversationIds([]);
+        }
       } catch (err) {
         setConversationIds([]);
       }
