@@ -1,0 +1,33 @@
+# FASTAPI BACKEND .gitignore
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.log
+*.sqlite3
+*.db
+.env
+config.yaml
+# VSCode
+.vscode/
+# OS
+.DS_Store
+Thumbs.db
+# Test/coverage
+htmlcov/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+.tox/
+.mypy_cache/
+# Jupyter
+.ipynb_checkpoints/
+# Others
+*.bak
+*.swp

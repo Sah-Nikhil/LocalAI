@@ -1,0 +1,28 @@
+
+# Core
+fastapi
+uvicorn[standard]
+
+# File parsing
+pypdf
+python-docx
+python-pptx
+pillow
+pymupdf
+pyyaml
+
+# Ollama API calls
+requests
+
+# Vector DB
+qdrant-client
+
+# Utilities
+python-multipart
+python-dotenv
+
+# Supabase
+supabase
+
+# For type hints (optional, but recommended for dev)
+typing-extensions
