@@ -17,7 +17,7 @@ DocChat is a full-stack application that enables users to upload documents (PDF,
   - [Session & State Management](#session--state-management)
   - [Setup & Running](#frontend-setup--running)
 - [Credits](#Credits)
-```- [License](#license)```
+<!-- - [License](#license) -->
 
 ---
 
