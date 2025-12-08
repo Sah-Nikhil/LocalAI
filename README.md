@@ -12,7 +12,7 @@ DocChat is a full-stack application that enables users to upload documents (PDF,
   - [Supabase Schema](#supabase-schema)
   - [Qdrant Usage](#qdrant-usage)
   - [Setup & Running](#backend-setup--running)
-- [Frontend: chatpdf](#frontend-chatpdf)
+- [Frontend](#frontend)
   - [Key Components](#key-components)
   - [Session & State Management](#session--state-management)
   - [Setup & Running](#frontend-setup--running)
@@ -109,7 +109,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_messages_chat_id ON chat_messages(chat_id);
 
 ---
 
-## Frontend: chatpdf
+## Frontend
 
 ### Key Components
 - `app-sidebar.tsx` — Sidebar for session management, file list, and navigation
