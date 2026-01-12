@@ -66,7 +66,7 @@ function UploadedFilesSidebar() {
   };
 
   return (
-    <div className="w-72 border-l border-border bg-secondary p-4 flex flex-col">
+    <div className="w-72 border-l border-border bg-secondary p-4 flex flex-col shrink-0 h-full">
       {/* Processed files section (hidden until at least one file is uploaded) */}
       {processedFiles.length > 0 && (
         <>

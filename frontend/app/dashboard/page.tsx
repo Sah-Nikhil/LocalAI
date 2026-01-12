@@ -26,6 +26,7 @@ export default function Page() {
     return (
         <ChatProvider>
         <SidebarProvider
+        className="h-svh"
         style={
             {
             "--sidebar-width": "23rem",
@@ -34,7 +35,7 @@ export default function Page() {
         >
         <ThemeProvider>
             <AppSidebar />
-            <SidebarInset>
+            <SidebarInset className="overflow-hidden">
                 <header className="bg-background sticky top-0 flex shrink-0 items-center gap-2  border-b py-2 px-4">
                     <span className="text-foreground text-lg font-semibold">
                     DocChat
@@ -59,8 +60,8 @@ export default function Page() {
                     <ModeToggle/>
                 </div>
                 </header>
-                <div className="flex flex-1 overflow-hidden">
-                    <div className="flex flex-1 flex-col gap-4 p-4">
+                <div className="flex flex-1 overflow-hidden h-full">
+                    <div className="flex flex-1 flex-col gap-4 overflow-hidden">
                         <MainChatArea/>
                     </div>
                     <UploadedFilesSidebar/>
