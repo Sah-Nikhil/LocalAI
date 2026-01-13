@@ -36,15 +36,28 @@ export default function MainChatArea() {
 
     // Helper to extract and log reasoning
     const processMessageText = (text: string): string => {
-        const thinkRegex = /<think>([\s\S]*?)<\/think>/g;
-        let match;
-        let cleanedText = text;
+        let result = text;
 
-        while ((match = thinkRegex.exec(text)) !== null) {
-            console.log("🧠 Model Reasoning:", match[1].trim());
-            cleanedText = cleanedText.replace(match[0], "");
+        // 1. Handle orphan </think> tag (e.g., Satyr model starting with reasoning but missing <think>)
+        const firstOpen = text.indexOf('<think>');
+        const firstClose = text.indexOf('</think>');
+
+        if (firstClose !== -1 && (firstOpen === -1 || firstClose < firstOpen)) {
+            const reasoning = text.substring(0, firstClose).trim();
+            if (reasoning) {
+                console.log("🧠 Model Reasoning (Orphan):", reasoning);
+            }
+            result = text.substring(firstClose + 8); // Remove the orphan </think> tag
         }
-        return cleanedText.trim();
+
+        // 2. Handle standard or unclosed blocks: <think>...</think> or <think>... (EOF)
+        const thinkRegex = /<think>([\s\S]*?)(?:<\/think>|$)/g;
+        return result.replace(thinkRegex, (match, content) => {
+            if (content.trim()) {
+                console.log("🧠 Model Reasoning:", content.trim());
+            }
+            return "";
+        }).trim();
     };
 
     // Fetch previous messages if chatId exists (on reload)
@@ -139,10 +152,10 @@ export default function MainChatArea() {
             {messages.map((msg, idx) => (
             <div key={idx} className="space-y-1">
                 <div
-                    className={`p-4 rounded-2xl max-w-[80%] leading-relaxed animate-in fade-in slide-in-from-bottom-2 w-fit break-words whitespace-pre-wrap ${
+                    className={`p-4 rounded-2xl max-w-[60%] leading-relaxed animate-in fade-in slide-in-from-bottom-2 w-fit break-words whitespace-pre-wrap ${
                     msg.role === "user"
-                        ? "bg-primary text-primary-foreground ml-auto rounded-tr-sm shadow-sm"
-                        : "bg-accent/25 dark:bg-accent text-foreground rounded-tl-sm shadow-sm"
+                        ? "bg-primary text-primary-foreground ml-auto rounded-tr-none shadow-sm"
+                        : "bg-accent/50 dark:bg-accent/75 text-foreground rounded-tl-none shadow-sm"
                     }`}
                 >
                     {msg.text}
