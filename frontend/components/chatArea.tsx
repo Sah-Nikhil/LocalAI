@@ -2,15 +2,25 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { sendMessage } from "@/hooks/useChat"; // Make sure the path matches
+import { Switch } from "@/components/ui/switch";
+import { sendMessage, type TokenStats } from "@/hooks/useChat";
 import { useChatContext } from "@/hooks/useChatContext";
-import { Send } from "lucide-react";
+import { Send, Zap } from "lucide-react";
+import { ModelSelector } from "@/components/ModelSelector";
+
+interface Message {
+    role: "user" | "ai";
+    text: string;
+    tokens?: TokenStats;
+    model?: string;
+}
 
 export default function MainChatArea() {
-    const [messages, setMessages] = useState<{ role: "user" | "ai"; text: string }[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [selectedModel, setSelectedModel] = useState<string | null>(null);
+    const [showTokenStats, setShowTokenStats] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -23,6 +33,19 @@ export default function MainChatArea() {
 
     // Use chatId and conversationIds from context
     const { chatId, conversationIds } = useChatContext();
+
+    // Helper to extract and log reasoning
+    const processMessageText = (text: string): string => {
+        const thinkRegex = /<think>([\s\S]*?)<\/think>/g;
+        let match;
+        let cleanedText = text;
+
+        while ((match = thinkRegex.exec(text)) !== null) {
+            console.log("🧠 Model Reasoning:", match[1].trim());
+            cleanedText = cleanedText.replace(match[0], "");
+        }
+        return cleanedText.trim();
+    };
 
     // Fetch previous messages if chatId exists (on reload)
     useEffect(() => {
@@ -38,7 +61,11 @@ export default function MainChatArea() {
                 if (!res.ok) throw new Error("Failed to fetch messages");
                 const data = await res.json();
                 // Expecting data.messages: [{role: 'user'|'ai', text: string}]
-                setMessages(data.messages || []);
+                const loadedMessages = (data.messages || []).map((msg: Message) => ({
+                    ...msg,
+                    text: msg.role === "ai" ? processMessageText(msg.text) : msg.text
+                }));
+                setMessages(loadedMessages);
             } catch (err) {
                 setMessages([]);
             }
@@ -48,45 +75,88 @@ export default function MainChatArea() {
     const handleSend = async () => {
         if (!input.trim()) return;
 
-        const userMessage = { role: "user" as const, text: input };
+        const userMessage: Message = { role: "user", text: input };
         setMessages((prev) => [...prev, userMessage]);
         setInput("");
         setLoading(true);
 
         try {
-        if (!chatId) throw new Error("No chatId available");
-        const aiResponse = await sendMessage(chatId, conversationIds, input);
-        setMessages((prev) => [...prev, { role: "ai", text: aiResponse }]);
+            if (!chatId) throw new Error("No chatId available");
+            const response = await sendMessage(
+                chatId,
+                conversationIds,
+                input,
+                "search",
+                selectedModel || undefined
+            );
+
+            if (response.error) {
+                setMessages((prev) => [...prev, {
+                    role: "ai",
+                    text: `⚠️ ${response.error}`
+                }]);
+            } else {
+                const cleanedAnswer = processMessageText(response.answer);
+                setMessages((prev) => [...prev, {
+                    role: "ai",
+                    text: cleanedAnswer,
+                    tokens: response.tokens,
+                    model: response.model_used
+                }]);
+            }
         } catch (error) {
-        setMessages((prev) => [...prev, { role: "ai", text: "⚠️ Failed to get response." }]);
+            setMessages((prev) => [...prev, { role: "ai", text: "⚠️ Failed to get response." }]);
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
     };
 
-    const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") handleSend();
+    const handleEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
+
+    // Format token count for display
+    const formatTokens = (tokens: TokenStats) => {
+        if (tokens.reasoning_tokens && tokens.reasoning_tokens > 0) {
+            const responseTokens = tokens.completion_tokens - tokens.reasoning_tokens;
+            return `${tokens.total_tokens} tokens (prompt: ${tokens.prompt_tokens} • reasoning: ${tokens.reasoning_tokens} • response: ${responseTokens})`;
+        }
+        return `${tokens.total_tokens} tokens (prompt: ${tokens.prompt_tokens} • response: ${tokens.completion_tokens})`;
     };
 
     return (
     <div className="relative flex flex-col h-full bg-background/50">
         {/* Chat messages */}
-        <div className="flex-1 overflow-y-auto w-full h-full p-4 pt-3 pb-28 space-y-4 scroll-smooth">
+        <div className="flex-1 overflow-y-auto w-full h-full p-4 pt-3 pb-36 space-y-4 scroll-smooth">
             {messages.length === 0 && (
             <div className="bg-muted/50 p-6 rounded-2xl max-w-md mx-auto mt-10 text-muted-foreground">
                 <p>Hello! Upload a document and ask your question.</p>
             </div>
             )}
             {messages.map((msg, idx) => (
-            <div
-                key={idx}
-                className={`p-4 rounded-2xl max-w-[80%] leading-relaxed animate-in fade-in slide-in-from-bottom-2 w-fit break-words ${
-                msg.role === "user"
-                    ? "bg-primary text-primary-foreground ml-auto rounded-tr-sm shadow-sm"
-                    : "bg-muted text-foreground rounded-tl-sm shadow-sm"
-                }`}
-            >
-                {msg.text}
+            <div key={idx} className="space-y-1">
+                <div
+                    className={`p-4 rounded-2xl max-w-[80%] leading-relaxed animate-in fade-in slide-in-from-bottom-2 w-fit break-words whitespace-pre-wrap ${
+                    msg.role === "user"
+                        ? "bg-primary text-primary-foreground ml-auto rounded-tr-sm shadow-sm"
+                        : "bg-accent/25 dark:bg-accent text-foreground rounded-tl-sm shadow-sm"
+                    }`}
+                >
+                    {msg.text}
+                </div>
+                {/* Token stats footer for AI messages */}
+                {msg.role === "ai" && msg.tokens && showTokenStats && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-1 animate-in fade-in">
+                        <Zap className="h-3 w-3" />
+                        <span>{formatTokens(msg.tokens)}</span>
+                        {msg.model && (
+                            <span className="text-muted-foreground/60">• {msg.model}</span>
+                        )}
+                    </div>
+                )}
             </div>
             ))}
             {loading && (
@@ -102,37 +172,50 @@ export default function MainChatArea() {
 
         {/* Floating Message Input */}
         <div className="absolute bottom-6 left-0 right-0 px-6 sm:px-12 flex justify-center z-20">
-            <div className="w-full max-w-4xl flex gap-3 p-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border shadow-2xl rounded-full pl-6 pr-2 items-center ring-1 ring-border/50">
-                <Input
-                    placeholder="Type a message..."
-                    className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none py-6 text-base"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleEnter}
-                    disabled={loading}
-                />
-                <Button
-                    onClick={handleSend}
-                    disabled={loading || !input.trim()}
-                    className="rounded-full h-10 w-10 p-0 shrink-0 shadow-sm transition-transform active:scale-95 "
-                    size="icon"
-                >
-                    <Send className="-ml-0.5"/>
-                    {/* <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="w-5 h-5"
+            <div className="w-full max-w-4xl flex flex-col gap-2">
+                {/* Model selector and token toggle row */}
+                <div className="flex items-center justify-between px-2">
+                    <ModelSelector
+                        selectedModel={selectedModel}
+                        onModelChange={setSelectedModel}
+                        disabled={loading}
+                    />
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>Show tokens</span>
+                        <Switch
+                            checked={showTokenStats}
+                            onCheckedChange={setShowTokenStats}
+                            className="scale-75"
+                        />
+                    </div>
+                </div>
+
+                {/* Input area */}
+                <div className="w-full flex gap-3 p-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border shadow-2xl rounded-3xl pl-6 pr-2 items-center ring-1 ring-border/50">
+                    <textarea
+                        placeholder="Type a message..."
+                        className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none py-3 text-base resize-none min-h-[24px] max-h-[150px] outline-none"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleEnter}
+                        disabled={loading}
+                        rows={1}
+                        onInput={(e) => {
+                            const target = e.target as HTMLTextAreaElement;
+                            target.style.height = 'auto';
+                            target.style.height = `${Math.min(target.scrollHeight, 150)}px`;
+                        }}
+                    />
+                    <Button
+                        onClick={handleSend}
+                        disabled={loading || !input.trim()}
+                        className="rounded-full h-10 w-10 p-0 shrink-0 shadow-sm transition-transform active:scale-95"
+                        size="icon"
                     >
-                        <path d="m5 12 7-7 7 7" />
-                        <path d="M12 19V5" />
-                    </svg> */}
-                    <span className="sr-only">Send</span>
-                </Button>
+                        <Send className="-ml-0.5"/>
+                        <span className="sr-only">Send</span>
+                    </Button>
+                </div>
             </div>
         </div>
     </div>

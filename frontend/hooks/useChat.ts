@@ -1,6 +1,53 @@
-// chatpdf/hooks/useChat.ts
+// hooks/useChat.ts
+/**
+ * Chat hooks for communicating with the DocChat backend.
+ * Includes model management and health checks.
+ */
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
+// Types
+export interface TokenStats {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  reasoning_tokens?: number;
+}
+
+export interface ChatResponse {
+  answer: string;
+  tokens?: TokenStats;
+  model_used?: string;
+  error?: string;
+}
+
+export interface ModelInfo {
+  name: string;
+  size: number;
+  modified_at: string;
+  family: string;
+}
+
+export interface ModelsResponse {
+  configured: {
+    llm: { configured: string; host: string };
+    vlm: { configured: string; host: string };
+    embedding: { configured: string; host: string };
+  };
+  available: {
+    llm: ModelInfo[];
+    vlm: ModelInfo[];
+    embedding: ModelInfo[];
+  };
+}
+
+export interface HealthStatus {
+  status: "healthy" | "degraded" | "unhealthy";
+  services: {
+    ollama: { status: string; models?: ModelInfo[]; error?: string };
+    qdrant: { status: string; collections_count?: number; error?: string };
+  };
+}
 
 // Delete a chat session by chat_id
 export async function deleteChatSession(chatId: string) {
@@ -59,8 +106,9 @@ export async function sendMessage(
   chatId: string,
   conversationIds: string[],
   query: string,
-  mode: "full" | "search" = "search"
-): Promise<string> {
+  mode: "full" | "search" = "search",
+  model?: string
+): Promise<ChatResponse> {
   const userId = process.env.NEXT_PUBLIC_USER_ID || "fallback_u";
   const res = await fetch(`${backendUrl}/chat`, {
     method: "POST",
@@ -71,6 +119,7 @@ export async function sendMessage(
       query,
       mode,
       user_id: userId,
+      model: model || undefined,
     }),
   });
 
@@ -78,6 +127,24 @@ export async function sendMessage(
     throw new Error(`Failed to send message: ${res.status} ${res.statusText}`);
   }
 
-  const data = await res.json();
-  return data.answer;
+  const data: ChatResponse = await res.json();
+  return data;
+}
+
+// Fetch available models from the backend
+export async function fetchAvailableModels(): Promise<ModelsResponse> {
+  const res = await fetch(`${backendUrl}/models`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch models: ${res.status} ${res.statusText}`);
+  }
+  return await res.json();
+}
+
+// Check health status of backend services
+export async function checkHealth(): Promise<HealthStatus> {
+  const res = await fetch(`${backendUrl}/models/health`);
+  if (!res.ok) {
+    throw new Error(`Failed to check health: ${res.status} ${res.statusText}`);
+  }
+  return await res.json();
 }

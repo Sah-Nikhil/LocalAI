@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.endpoints import upload, chat, session, delete_session, conversations, messages
+from app.api.endpoints import upload, chat, session, delete_session, conversations, messages, models
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -27,6 +27,7 @@ app.include_router(session.router, prefix="/session", tags=["Session"])
 app.include_router(delete_session.router, prefix="/session", tags=["Session"])
 app.include_router(conversations.router, tags=["Conversations"])
 app.include_router(messages.router, tags=["Messages"])
+app.include_router(models.router, prefix="/models", tags=["Models"])
 
 
 if __name__ == "__main__":

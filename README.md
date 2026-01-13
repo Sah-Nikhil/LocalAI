@@ -3,7 +3,6 @@
 DocChat is a full-stack application that enables users to upload documents (PDF, Word, PowerPoint, Markdown, Text) and chat with them using AI-powered retrieval and summarization. The platform features persistent chat sessions, document context, and seamless integration between a Next.js frontend and a FastAPI backend, with Supabase and Qdrant for storage and vector search.
 
 ---
-
 ## Table of Contents
 - [Features](#features)
 - [Architecture Overview](#architecture-overview)
@@ -20,24 +19,27 @@ DocChat is a full-stack application that enables users to upload documents (PDF,
 <!-- - [License](#license) -->
 
 ---
-
 ## Features
 - Upload and process multiple document types (PDF, DOCX, PPTX, TXT, MD)
 - Persistent chat sessions and document context (Supabase as source of truth)
 - Vector search and retrieval using Qdrant
 - AI-powered Q&A and summarization (Ollama, LLMs)
 - Visual Language Model (VLM) extracts and summarizes images from documents; image chunks are embedded and stored in the main vector DB alongside text chunks
+- Dynamic Model Selection (LLM & VLM) via UI with loading states
+- Reasoning Model Support: Reasoning token calculation and hidden reasoning output
+- Token Usage Statistics: Displays prompt, completion, and reasoning token counts
+<!-- - Enhanced Chat Input: Floating input box with Shift+Enter for new lines -->
 - Modern, responsive Next.js frontend
 - FastAPI backend with clear REST endpoints
 - User session management, file sidebar, and chat area
 
 ---
-
 ## Architecture Overview
 
 ```
 [User] ⇄ [Next.js Frontend] ⇄ [FastAPI Backend] ⇄ [Supabase, Qdrant, Ollama]
 ```
+
 - **Frontend:** Next.js (React), TypeScript, modern UI, state/context for chat and session
 - **Backend:** FastAPI, Python, REST API, document parsing (including text and images), embedding, and chat logic
 - **Storage:** Supabase (metadata, chat, docs, messages), Qdrant (vector DB)
@@ -45,7 +47,6 @@ DocChat is a full-stack application that enables users to upload documents (PDF,
 - **VLM:** Visual Language Model extracts and summarizes images from documents; image chunks are embedded and stored in Qdrant alongside text chunks
 
 ---
-
 ## Backend: docchat-backend
 
 ### API Endpoints
@@ -57,6 +58,7 @@ DocChat is a full-stack application that enables users to upload documents (PDF,
 - `DELETE /session/{chat_id}` — Delete a chat session and all associated data
 
 ### Supabase Schema
+
 ```
 -- Chats: One row per session
 CREATE TABLE IF NOT EXISTS chats (
@@ -108,11 +110,11 @@ CREATE INDEX IF NOT EXISTS idx_chat_messages_chat_id ON chat_messages(chat_id);
    ```
 
 ---
-
 ## Frontend
 
 ### Key Components
 - `app-sidebar.tsx` — Sidebar for session management, file list, and navigation
+- `ModelSelector.tsx` — Dynamic model selection dropdown with loading states
 - `chatArea.tsx` — Main chat UI, message display, and input
 - `uploadSidebar.tsx` — File upload and processed files list
 - `useChatContext.tsx` — React context for chat/session state
@@ -137,6 +139,5 @@ CREATE INDEX IF NOT EXISTS idx_chat_messages_chat_id ON chat_messages(chat_id);
    ```
 
 ---
-
 ## Credits
 - Built with Next.js, FastAPI, Supabase, Qdrant, and Ollama

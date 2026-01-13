@@ -13,6 +13,8 @@ pyyaml
 
 # Ollama API calls
 requests
+httpx
+tiktoken
 
 # Vector DB
 qdrant-client
