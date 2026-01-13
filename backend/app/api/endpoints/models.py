@@ -95,11 +95,19 @@ async def list_available_models() -> Dict[str, Any]:
                 "family": family
             }
 
-            if is_vision_model(name, details):
+            is_vision = is_vision_model(name, details)
+            is_embedding = is_embedding_model(name, details)
+
+            if is_vision:
                 categorized["vlm"].append(model_info)
-            elif is_embedding_model(name, details):
+
+            if is_embedding:
                 categorized["embedding"].append(model_info)
-            else:
+
+            # Most models (except purely embedding/visual) are LLMs
+            # If it's not an embedding model, we treat it as an LLM
+            # This allows multimodal models to appear in both LLM and VLM tabs
+            if not is_embedding:
                 categorized["llm"].append(model_info)
 
     except Exception as e:
