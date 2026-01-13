@@ -145,7 +145,7 @@ export default function MainChatArea() {
         {/* Chat messages */}
         <div className="flex-1 overflow-y-auto w-full h-full p-4 pt-3 pb-36 space-y-4 scroll-smooth">
             {messages.length === 0 && (
-            <div className="bg-muted/50 p-6 rounded-2xl max-w-md mx-auto mt-10 text-muted-foreground">
+            <div className="dark:bg-accent/50 bg-accent/75 p-6 rounded-2xl max-w-md mx-auto mt-10 text-muted-foreground flex justify-center shadow-md ">
                 <p>Hello! Upload a document and ask your question.</p>
             </div>
             )}

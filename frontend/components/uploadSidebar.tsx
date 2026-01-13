@@ -128,13 +128,14 @@ function UploadedFilesSidebar() {
               <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
                 <p className="px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-neutral-800 ">
                   {(() => {
-                    if (file.type === "application/pdf") return "PDF";
-                    if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                    const name = file.name.toLowerCase();
+                    if (file.type === "application/pdf" || name.endsWith(".pdf")) return "PDF";
+                    if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || name.endsWith(".docx"))
                       return "Word";
-                    if (file.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation")
+                    if (file.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" || name.endsWith(".pptx"))
                       return "PowerPoint";
-                    if (file.type === "text/plain") return "Text";
-                    if (file.type === "text/markdown") return "Markdown";
+                    if (file.type === "text/plain" || name.endsWith(".txt")) return "Text";
+                    if (file.type === "text/markdown" || name.endsWith(".md")) return "Markdown";
                     return "Other";
                   })()}
                 </p>
