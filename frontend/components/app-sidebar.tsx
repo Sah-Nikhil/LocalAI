@@ -21,6 +21,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Switch } from "@/components/ui/switch"
+import Link from "next/link";
 
 // This is sample data
 const data = {
@@ -64,42 +65,14 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { resetSession } = useChatContext();
+  const { resetSession, chatId: contextChatId } = useChatContext();
   // Note: I'm using state to show active item.
   // IRL you should use the url/router.
     const [activeItem, setActiveItem] = React.useState(data.navMain[0])
     // const [mails, setMails] = React.useState(data.mails)
     const { setOpen } = useSidebar()
-    // Hybrid approach: use chatId from localStorage, but also fetch from backend for sync
-    const [chatId, setChatId] = React.useState<string>("");
-    React.useEffect(() => {
-      // 1. Use localStorage for instant UI
-      const storedChatId = localStorage.getItem("chatId");
-      if (storedChatId) setChatId(storedChatId);
-
-      // 2. Fetch latest chatId from backend for sync
-      const fetchChatId = async () => {
-        try {
-          const USER_ID = process.env.NEXT_PUBLIC_USER_ID || "fallback_u";
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-          const res = await fetch(`${backendUrl}/session/chat-session`, {
-            method: "POST",
-            body: JSON.stringify({ user_id: USER_ID }),
-            headers: { "Content-Type": "application/json" },
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.chat_id && data.chat_id !== storedChatId) {
-              setChatId(data.chat_id);
-              localStorage.setItem("chatId", data.chat_id);
-            }
-          }
-        } catch (err) {
-          // Optionally handle error
-        }
-      };
-      fetchChatId();
-    }, []);
+    // Use chatId from context (provided by ChatProvider)
+    const chatId = contextChatId || "";
 
     return (
         <Sidebar
@@ -118,7 +91,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
                 <SidebarMenuItem>
                 <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
-                    <a href="#">
+                    <Link href="/">
                     <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                         <Command className="size-4" />
                     </div>
@@ -126,7 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         <span className="truncate font-medium">KA3R0X</span>
                         <span className="truncate text-xs">Enterprise</span>
                     </div>
-                    </a>
+                    </Link>
                 </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
@@ -149,28 +122,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           if (item.title === "Delete Session" && chatId) {
                             try {
                               await deleteChatSession(chatId);
-                              localStorage.removeItem("chatId");
-                              setChatId("");
                               resetSession(); // clear context state
 
-                              // Immediately create a new session
-                              const USER_ID = process.env.NEXT_PUBLIC_USER_ID || "fallback_u";
-                              const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-                              const res = await fetch(`${backendUrl}/session/chat-session`, {
-                                method: "POST",
-                                body: JSON.stringify({ user_id: USER_ID }),
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                              });
-                              if (res.ok) {
-                                const data = await res.json();
-                                setChatId(data.chat_id);
-                                localStorage.setItem("chatId", data.chat_id);
-                                alert("Session deleted. New session started.");
-                              } else {
-                                alert("Session deleted. Failed to create new session.");
-                              }
+                              // Navigate to home page where user can create a new space
+                              window.location.href = "/";
+                              alert("Session deleted.");
                             } catch (err) {
                               alert("Failed to delete session.");
                             }

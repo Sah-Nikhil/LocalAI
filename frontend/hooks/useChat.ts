@@ -12,6 +12,9 @@ export interface TokenStats {
   completion_tokens: number;
   total_tokens: number;
   reasoning_tokens?: number;
+  context_tokens?: number;
+  history_tokens?: number;
+  query_tokens?: number;
 }
 
 export interface ChatResponse {

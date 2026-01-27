@@ -34,8 +34,9 @@ export default function Home() {
   const handleNewSpace = async () => {
     try {
       setCreating(true);
-      const newChat = await createChat(userId);
-      router.push(`/chat/${newChat.chat_id}`);
+      // Generate UUID client-side - no backend call, no DB entry yet
+      const newChatId = crypto.randomUUID();
+      router.push(`/chat/${newChatId}`);
     } catch (error) {
       console.error("Failed to create chat:", error);
     } finally {

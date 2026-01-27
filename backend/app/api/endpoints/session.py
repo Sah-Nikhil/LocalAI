@@ -43,8 +43,11 @@ async def list_chats(user_id: str = Query(...)):
     """
     try:
         sb = supabase.get_client()
-        # Fetch all chats for this user
-        chats_res = sb.table("chats").select("chat_id, title, created_at").eq("user_id", user_id).order("created_at", desc=True).execute()
+        # Use a JOIN to fetch chats with their documents in a single query
+        # This avoids the N+1 query problem
+        chats_res = sb.table("chats").select(
+            "chat_id, title, created_at, chat_documents(file_name, file_type)"
+        ).eq("user_id", user_id).order("created_at", desc=True).execute()
 
         if not chats_res.data:
             return {"chats": []}
@@ -52,9 +55,10 @@ async def list_chats(user_id: str = Query(...)):
         chats = []
         for chat in chats_res.data:
             chat_id = chat["chat_id"]
-            # Fetch first associated document for display
-            doc_res = sb.table("chat_documents").select("file_name, file_type").eq("chat_id", chat_id).limit(1).execute()
-            file_info = doc_res.data[0] if doc_res.data else None
+            # chat_documents is now an array from the JOIN
+            documents = chat.get("chat_documents", [])
+            # Get the first document if available
+            file_info = documents[0] if documents else None
 
             chats.append({
                 "chat_id": chat_id,
@@ -66,4 +70,8 @@ async def list_chats(user_id: str = Query(...)):
 
         return {"chats": chats}
     except Exception as e:
+        # Add detailed logging to help debug the 500 error
+        print(f"Error fetching chats for user {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

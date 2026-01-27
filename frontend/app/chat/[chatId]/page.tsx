@@ -33,13 +33,13 @@ export default async function ChatPage({ params }: ChatPageProps) {
             <AppSidebar />
             <SidebarInset className="overflow-hidden">
                 <header className="bg-background sticky top-0 flex shrink-0 items-center gap-2 border-b py-2 px-4">
-                    <Link
+                    {/* <Link
                       href="/"
                       className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <IconArrowLeft size={18} />
                       <span className="text-sm">Back</span>
-                    </Link>
+                    </Link> */}
                     <span className="text-foreground text-lg font-semibold ml-2">
                     DocChat
                     </span>

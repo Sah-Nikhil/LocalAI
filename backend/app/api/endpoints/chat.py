@@ -51,6 +51,9 @@ class TokenStats(BaseModel):
     completion_tokens: int
     total_tokens: int
     reasoning_tokens: int = 0
+    context_tokens: int = 0
+    history_tokens: int = 0
+    query_tokens: int = 0
 
 
 class ChatResponse(BaseModel):
@@ -143,9 +146,14 @@ async def chat(request: ChatRequest) -> ChatResponse:
 {history_block}User: {request.query}
 Assistant:"""
 
-        # Count prompt tokens
+        # Calculate detailed token counts
+        context_tokens = count_tokens(context_text)
+        history_tokens = count_tokens(history_block)
+        query_tokens = count_tokens(f"{system_instruction}\n\n--- Start of Document Context ---\n--- End of Context ---\n\n--- Conversation History ---\nUser: {request.query}\nAssistant:")
+
+        # Count total prompt tokens
         prompt_tokens = count_tokens(prompt)
-        logger.info(f"📊 Prompt tokens: {prompt_tokens}")
+        logger.info(f"📊 Token breakdown - Context: {context_tokens}, History: {history_tokens}, Query: {query_tokens}, Total prompt: {prompt_tokens}")
 
         # Call LLM using async client with retry logic
         logger.info("🧠 Sending prompt to LLM...")
@@ -193,7 +201,10 @@ Assistant:"""
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
                 total_tokens=total_tokens,
-                reasoning_tokens=reasoning_tokens
+                reasoning_tokens=reasoning_tokens,
+                context_tokens=context_tokens,
+                history_tokens=history_tokens,
+                query_tokens=query_tokens
             ),
             model_used=model_to_use
         )

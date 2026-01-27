@@ -14,31 +14,31 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 @router.post("/")
 async def upload_file(
     file: UploadFile = File(...),
-    user_id: str = Form(...)
+    user_id: str = Form(...),
+    chat_id: str = Form(...)
 ):
     try:
         print("🚀 Starting upload...", flush=True)
 
-        # 🔍 Get or create a chat session for this user
+        # 🔍 Check if chat session exists, if not create it (delayed creation)
         sb = supabase.get_client()
-        chat_result = sb.table("chats").select("chat_id").eq("user_id", user_id).limit(1).execute()
+        chat_result = sb.table("chats").select("chat_id, title").eq("chat_id", chat_id).limit(1).execute()
 
         if chat_result.data:
-            chat_id = chat_result.data[0]["chat_id"]
-            print(f"♻️ Found existing chat_id for user {user_id}: {chat_id}", flush=True)
-            # Check and update chat title if it's still 'Untitled Chat'
-            chat_row = sb.table("chats").select("title").eq("chat_id", chat_id).limit(1).execute()
-            if chat_row.data and chat_row.data[0]["title"] == "Untitled Chat":
+            # Chat exists, update title if still "Untitled Chat"
+            existing_chat = chat_result.data[0]
+            print(f"♻️ Found existing chat_id: {chat_id}", flush=True)
+            if existing_chat["title"] == "Untitled Chat":
                 sb.table("chats").update({"title": file.filename}).eq("chat_id", chat_id).execute()
                 print(f"✏️ Updated chat title to: {file.filename}", flush=True)
         else:
-            chat_id = str(uuid4())
+            # Chat does NOT exist - create new (file upload triggers persistence)
             sb.table("chats").insert({
                 "chat_id": chat_id,
                 "user_id": user_id,
                 "title": file.filename
             }).execute()
-            print(f"🆕 Created new chat_id for user {user_id}: {chat_id}", flush=True)
+            print(f">> Created new chat session: {chat_id} with title: {file.filename}", flush=True)
 
         # 🆔 Generate new conversation ID for this document
         conversation_id = str(uuid4())

@@ -21,6 +21,7 @@ export default function MainChatArea() {
     const [loading, setLoading] = useState(false);
     const [selectedModel, setSelectedModel] = useState<string | null>(null);
     const [showTokenStats, setShowTokenStats] = useState(true);
+    const [expandedTokens, setExpandedTokens] = useState<Set<number>>(new Set());
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -131,13 +132,26 @@ export default function MainChatArea() {
         }
     };
 
-    // Format token count for display
-    const formatTokens = (tokens: TokenStats) => {
+    // Format token count summary
+    const formatTokensSummary = (tokens: TokenStats) => {
         if (tokens.reasoning_tokens && tokens.reasoning_tokens > 0) {
             const responseTokens = tokens.completion_tokens - tokens.reasoning_tokens;
             return `${tokens.total_tokens} tokens (prompt: ${tokens.prompt_tokens} • reasoning: ${tokens.reasoning_tokens} • response: ${responseTokens})`;
         }
         return `${tokens.total_tokens} tokens (prompt: ${tokens.prompt_tokens} • response: ${tokens.completion_tokens})`;
+    };
+
+    // Toggle breakdown expansion for a specific message
+    const toggleTokenBreakdown = (idx: number) => {
+        setExpandedTokens(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(idx)) {
+                newSet.delete(idx);
+            } else {
+                newSet.add(idx);
+            }
+            return newSet;
+        });
     };
 
     return (
@@ -162,11 +176,45 @@ export default function MainChatArea() {
                 </div>
                 {/* Token stats footer for AI messages */}
                 {msg.role === "ai" && msg.tokens && showTokenStats && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-1 animate-in fade-in">
-                        <Zap className="h-3 w-3" />
-                        <span>{formatTokens(msg.tokens)}</span>
-                        {msg.model && (
-                            <span className="text-muted-foreground/60">• {msg.model}</span>
+                    <div className="ml-1 animate-in fade-in">
+                        <button
+                            onClick={() => toggleTokenBreakdown(idx)}
+                            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            <Zap className="h-3 w-3" />
+                            <span>{formatTokensSummary(msg.tokens)}</span>
+                            {msg.model && (
+                                <span className="text-muted-foreground/60">• {msg.model}</span>
+                            )}
+                            <svg
+                                className={`h-3 w-3 transition-transform ${expandedTokens.has(idx) ? 'rotate-180' : ''}`}
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        {/* Expanded breakdown */}
+                        {expandedTokens.has(idx) && (
+                            <div className="mt-2 ml-5 text-xs text-muted-foreground/80 space-y-0.5 animate-in fade-in slide-in-from-top-1">
+                                {msg.tokens.context_tokens !== undefined && msg.tokens.context_tokens > 0 && (
+                                    <div>📄 Context: {msg.tokens.context_tokens} tokens</div>
+                                )}
+                                {msg.tokens.history_tokens !== undefined && msg.tokens.history_tokens > 0 && (
+                                    <div>💬 History: {msg.tokens.history_tokens} tokens</div>
+                                )}
+                                {msg.tokens.query_tokens !== undefined && msg.tokens.query_tokens > 0 && (
+                                    <div>❓ Query: {msg.tokens.query_tokens} tokens</div>
+                                )}
+                                {msg.tokens.reasoning_tokens !== undefined && msg.tokens.reasoning_tokens > 0 && (
+                                    <div>🧠 Reasoning: {msg.tokens.reasoning_tokens} tokens</div>
+                                )}
+                                <div>💭 Response: {msg.tokens.reasoning_tokens && msg.tokens.reasoning_tokens > 0
+                                    ? msg.tokens.completion_tokens - msg.tokens.reasoning_tokens
+                                    : msg.tokens.completion_tokens} tokens</div>
+                            </div>
                         )}
                     </div>
                 )}
