@@ -49,6 +49,15 @@ export interface HealthStatus {
   };
 }
 
+// Chat list item
+export interface ChatSummary {
+  chat_id: string;
+  title: string;
+  created_at: string;
+  file_name: string | null;
+  file_type: string | null;
+}
+
 // Delete a chat session by chat_id
 export async function deleteChatSession(chatId: string) {
   const res = await fetch(`${backendUrl}/session/${chatId}`, {
@@ -60,21 +69,30 @@ export async function deleteChatSession(chatId: string) {
   return await res.json();
 }
 
-// Get or create a chat session for a user
-export async function getOrCreateChat(userId: string): Promise<string> {
+// Create a NEW chat session for a user
+export async function createChat(userId: string, title?: string): Promise<{ chat_id: string; title: string }> {
   const res = await fetch(`${backendUrl}/session/chat-session`, {
     method: "POST",
-    body: JSON.stringify({ user_id: userId }),
+    body: JSON.stringify({ user_id: userId, title: title || "Untitled Chat" }),
     headers: {
       "Content-Type": "application/json",
     },
   });
 
   if (!res.ok) {
-    throw new Error(`Failed to create or get chat session: ${res.status} ${res.statusText}`);
+    throw new Error(`Failed to create chat session: ${res.status} ${res.statusText}`);
+  }
+  return await res.json();
+}
+
+// Get all chats for a user
+export async function getAllChats(userId: string): Promise<ChatSummary[]> {
+  const res = await fetch(`${backendUrl}/session/list?user_id=${encodeURIComponent(userId)}`);
+  if (!res.ok) {
+    throw new Error(`Failed to get chats: ${res.status} ${res.statusText}`);
   }
   const data = await res.json();
-  return data.chat_id;
+  return data.chats || [];
 }
 
 // Upload a file and store it in Supabase + Qdrant
