@@ -31,3 +31,5 @@ htmlcov/
 # Others
 *.bak
 *.swp
+# Temp Uploads
+temp_uploads/
