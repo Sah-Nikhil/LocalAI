@@ -6,7 +6,7 @@ DocChat is a full-stack application that enables users to upload documents (PDF,
 ## Table of Contents
 - [Features](#features)
 - [Architecture Overview](#architecture-overview)
-- [Backend: docchat-backend](#backend-docchat-backend)
+- [Backend](#backend)
   - [API Endpoints](#api-endpoints)
   - [Supabase Schema](#supabase-schema)
   - [Qdrant Usage](#qdrant-usage)
@@ -47,7 +47,7 @@ DocChat is a full-stack application that enables users to upload documents (PDF,
 - **VLM:** Visual Language Model extracts and summarizes images from documents; image chunks are embedded and stored in Qdrant alongside text chunks
 
 ---
-## Backend: docchat-backend
+## Backend
 
 ### API Endpoints
 - `POST /upload/` — Upload a document (file, user_id); parses, chunks, embeds, stores in Qdrant & Supabase
