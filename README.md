@@ -1,143 +1,150 @@
-# DocChat: Document Chat Platform
+# DocChat: Local AI Document Chat Platform
 
-DocChat is a full-stack application that enables users to upload documents (PDF, Word, PowerPoint, Markdown, Text) and chat with them using AI-powered retrieval and summarization. The platform features persistent chat sessions, document context, and seamless integration between a Next.js frontend and a FastAPI backend, with Supabase and Qdrant for storage and vector search.
+DocChat is a full-stack application that enables users to upload documents (PDF, Word, PowerPoint, Markdown, Text) and chat with them using local AI. It leverages local LLMs for retrieval-augmented generation (RAG), featuring persistent chat sessions, advanced token tracking, and seamless integration between a Next.js frontend and a FastAPI backend.
 
 ---
+
 ## Table of Contents
+
 - [Features](#features)
 - [Architecture Overview](#architecture-overview)
 - [Backend](#backend)
   - [API Endpoints](#api-endpoints)
   - [Supabase Schema](#supabase-schema)
-  - [Qdrant Usage](#qdrant-usage)
+  - [Configuration](#configuration)
   - [Setup & Running](#backend-setup--running)
 - [Frontend](#frontend)
   - [Key Components](#key-components)
-  - [Session & State Management](#session--state-management)
+  - [State Management](#state-management)
   - [Setup & Running](#frontend-setup--running)
-- [Credits](#Credits)
-<!-- - [License](#license) -->
+- [Development Workflow](#development-workflow)
 
 ---
+
 ## Features
-- Upload and process multiple document types (PDF, DOCX, PPTX, TXT, MD)
-- Persistent chat sessions and document context (Supabase as source of truth)
-- Vector search and retrieval using Qdrant
-- AI-powered Q&A and summarization (Ollama, LLMs)
-- Visual Language Model (VLM) extracts and summarizes images from documents; image chunks are embedded and stored in the main vector DB alongside text chunks
-- Dynamic Model Selection (LLM & VLM) via UI with loading states
-- Reasoning Model Support: Reasoning token calculation and hidden reasoning output
-- Token Usage Statistics: Displays prompt, completion, and reasoning token counts
-<!-- - Enhanced Chat Input: Floating input box with Shift+Enter for new lines -->
-- Modern, responsive Next.js frontend
-- FastAPI backend with clear REST endpoints
-- User session management, file sidebar, and chat area
+
+- **Multi-Format Document Support**: Process PDF, DOCX, PPTX, TXT, and MD files.
+- **Local AI Processing**: Uses Ollama for local LLM and embedding generation (e.g., Llama 3.2, Nomic Embed).
+- **VLM Integration**: Visual Language Model support for extracting and summarizing images from documents.
+- **Vector Search**: High-performance retrieval using Qdrant vector database.
+- **Persistent Conversations**: Full chat history and document metadata stored in Supabase.
+- **Advanced Token Analytics**: Detailed breakdown of prompt, completion, and reasoning tokens.
+- **Reasoning Model Support**: Automatically detects and calculates reasoning tokens from models like DeepSeek R1.
+- **Dynamic Model Selection**: Switch between different LLMs and VLMs directly from the UI.
+- **Modern UI/UX**: Responsive Next.js interface with Tailwind CSS, Framer Motion, and shadcn/ui components.
 
 ---
+
 ## Architecture Overview
 
-```
-[User] ⇄ [Next.js Frontend] ⇄ [FastAPI Backend] ⇄ [Supabase, Qdrant, Ollama]
+```mermaid
+graph TD
+    User([User]) <--> Frontend[Next.js Frontend]
+    Frontend <--> Backend[FastAPI Backend]
+    Backend <--> Supabase[(Supabase - Metadata/Chat)]
+    Backend <--> Qdrant[(Qdrant - Vector DB)]
+    Backend <--> Ollama[Ollama - Local AI Models]
 ```
 
-- **Frontend:** Next.js (React), TypeScript, modern UI, state/context for chat and session
-- **Backend:** FastAPI, Python, REST API, document parsing (including text and images), embedding, and chat logic
-- **Storage:** Supabase (metadata, chat, docs, messages), Qdrant (vector DB)
-- **AI:** Ollama based compatible LLMs for embeddings and chat
-- **VLM:** Visual Language Model extracts and summarizes images from documents; image chunks are embedded and stored in Qdrant alongside text chunks
+- **Frontend**: Next.js 15, TypeScript, Tailwind CSS, Zustand (state management).
+- **Backend**: FastAPI (Python), Document parsing (PyMuPDF, python-docx, etc.), RAG logic.
+- **Storage**: Supabase (PostgreSQL) for structured data; Qdrant for vector embeddings.
+- **AI Engine**: Ollama (compatible with OpenAI-like API).
 
 ---
+
 ## Backend
 
 ### API Endpoints
-- `POST /upload/` — Upload a document (file, user_id); parses, chunks, embeds, stores in Qdrant & Supabase
-- `POST /session/chat-session` — Get or create a chat session for a user
-- `GET /session/{chat_id}/conversations` — List all uploaded files for a chat (conversation_id, file_name, file_type)
-- `GET /session/{chat_id}/messages` — Get all chat messages for a session
-- `POST /chat/` — Query chat with one or more documents (chat_id, conversation_ids, query, user_id)
-- `DELETE /session/{chat_id}` — Delete a chat session and all associated data
+
+- `POST /upload` — Upload and process a document (links to `chat_id`).
+- `POST /chat` — Send a query with document context and receive an AI response.
+- `POST /session/chat-session` — Create a new chat session.
+- `GET /session/list` — List all chat sessions for a user.
+- `GET /session/{chat_id}/conversations` — Get processed files for a specific chat.
+- `GET /session/{chat_id}/messages` — Retrieve message history for a chat.
+- `DELETE /session/{chat_id}` — Wipe a session and its associated vectors/files.
+- `GET /models` — List available and configured models.
+- `GET /models/health` — Check status of Ollama and Qdrant services.
 
 ### Supabase Schema
 
+The application requires three main tables:
+
+- `chats`: Stores session metadata (`chat_id`, `user_id`, `title`).
+- `chat_documents`: Links files to sessions (`conversation_id`, `file_name`, `file_type`).
+- `chat_messages`: Stores the Q&A history (`question`, `answer`, `tokens`).
+
+### Configuration
+
+Managed via `backend/config.yaml`:
+
+```yaml
+llm:
+  model_name: llama3.2:latest
+  host: http://localhost:11434
+vlm:
+  model_name: qwen2.5vl:3b
+  host: http://localhost:11434
+embedding:
+  model_name: nomic-embed-text
 ```
--- Chats: One row per session
-CREATE TABLE IF NOT EXISTS chats (
-  chat_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL,
-  title TEXT,
-  created_at TIMESTAMP DEFAULT now()
-);
-
--- Documents: One row per uploaded file, linked to a chat
-CREATE TABLE IF NOT EXISTS chat_documents (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  chat_id UUID REFERENCES chats(chat_id) ON DELETE CASCADE,
-  conversation_id TEXT NOT NULL, -- maps to Qdrant collection
-  file_name TEXT,
-  file_type TEXT,
-  created_at TIMESTAMP DEFAULT now(),
-  user_id TEXT NOT NULL,
-  UNIQUE (conversation_id)
-);
-
--- Messages: One row per Q&A exchange
-CREATE TABLE IF NOT EXISTS chat_messages (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  chat_id UUID REFERENCES chats(chat_id) ON DELETE CASCADE,
-  user_id TEXT NOT NULL,
-  question TEXT NOT NULL,
-  answer TEXT NOT NULL,
-  timestamp TIMESTAMP DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_chat_documents_user_id ON chat_documents(user_id);
-CREATE INDEX IF NOT EXISTS idx_chat_messages_chat_id ON chat_messages(chat_id);
-```
-
-### Qdrant Usage
-- Each uploaded document is chunked and embedded; vectors are stored in a Qdrant collection named after `conversation_id`.
-- Vector search is used for retrieval-augmented generation (RAG) in chat.
 
 ### Backend Setup & Running
-1. Install dependencies:
+
+1. **Install Dependencies**:
    ```sh
+   cd backend
    pip install -r requirements.txt
    ```
-2. Set up `.env` with Supabase and Qdrant credentials.
-3. Run the FastAPI server:
+2. **Environment Setup**: Create a `.env` file with:
+   - `SUPABASE_URL`, `SUPABASE_KEY`
+   - `QDRANT_HOST`, `QDRANT_PORT` (default: localhost:6333)
+3. **Run Server**:
    ```sh
    uvicorn app.main:app --reload
    ```
 
 ---
+
 ## Frontend
 
 ### Key Components
-- `app-sidebar.tsx` — Sidebar for session management, file list, and navigation
-- `ModelSelector.tsx` — Dynamic model selection dropdown with loading states
-- `chatArea.tsx` — Main chat UI, message display, and input
-- `uploadSidebar.tsx` — File upload and processed files list
-- `useChatContext.tsx` — React context for chat/session state
-- `useChat.ts` — Hooks for chat, upload, and session API calls
 
-### Session & State Management
-- Chat session and document context are persisted in Supabase and localStorage
-- On reload, frontend restores chatId and document context from backend
-- Deleting a session immediately creates a new one for seamless UX
+- `app-sidebar.tsx`: Navigation and chat history.
+- `chatArea.tsx`: Interactive chat interface with message bubbles.
+- `ModelSelector.tsx`: Dropdown for switching models with health status.
+- `uploadSidebar.tsx`: Drag-and-drop file upload with progress tracking.
+
+### State Management
+
+Uses **Zustand** and **React Context** to manage:
+
+- Active `chatId` and document selection.
+- Real-time message updates.
+- App-wide loading states and notifications.
 
 ### Frontend Setup & Running
-1. Install dependencies:
+
+1. **Install Dependencies**:
    ```sh
+   cd frontend
    pnpm install
-   # or npm install
    ```
-2. Set up `.env` with backend URL and user ID.
-3. Run the Next.js app:
+2. **Environment Setup**: Create a `.env` file with:
+   - `NEXT_PUBLIC_BACKEND_URL=http://localhost:8000`
+   - `NEXT_PUBLIC_USER_ID=your_id`
+3. **Run App**:
    ```sh
    pnpm dev
-   # or npm run dev
    ```
 
 ---
-## Credits
-- Built with Next.js, FastAPI, Supabase, Qdrant, and Ollama
+
+## Development Workflow
+
+1. **Ollama**: Ensure Ollama is running (`ollama serve`).
+2. **Qdrant**: Run via Docker: `docker run -p 6333:6333 qdrant/qdrant`.
+3. **Supabase**: Ensure your project tables are set up as per the schema.
+4. **Backend**: Start the FastAPI server.
+5. **Frontend**: Start the Next.js dev server.
