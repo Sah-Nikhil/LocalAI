@@ -14,7 +14,7 @@ app = FastAPI(title="DocChat Local Backend")
 # Allow CORS for local frontend and production (add your deployed URL as needed)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Add your deployed frontend URL here
+    allow_origins=["*"],  # Add your deployed frontend URL here
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
