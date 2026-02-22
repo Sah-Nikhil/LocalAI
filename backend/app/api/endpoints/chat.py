@@ -190,7 +190,15 @@ Assistant:"""
                 "chat_id": request.chat_id,
                 "user_id": USER_ID,
                 "question": request.query,
-                "answer": llm_response
+                "answer": llm_response,
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": total_tokens,
+                "reasoning_tokens": reasoning_tokens,
+                "context_tokens": context_tokens,
+                "history_tokens": history_tokens,
+                "query_tokens": query_tokens,
+                "model_used": model_to_use
             }).execute()
         except Exception as log_err:
             logger.warning(f"⚠️ Failed to log message to Supabase: {log_err}")

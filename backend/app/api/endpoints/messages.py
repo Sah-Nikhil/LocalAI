@@ -14,7 +14,20 @@ async def get_chat_messages(chat_id: str):
         messages = []
         for row in result.data:
             messages.append({"role": "user", "text": row["question"]})
-            messages.append({"role": "ai", "text": row["answer"]})
+            messages.append({
+                "role": "ai",
+                "text": row["answer"],
+                "model": row.get("model_used"),
+                "tokens": {
+                    "prompt_tokens": row.get("prompt_tokens"),
+                    "completion_tokens": row.get("completion_tokens"),
+                    "total_tokens": row.get("total_tokens"),
+                    "reasoning_tokens": row.get("reasoning_tokens"),
+                    "context_tokens": row.get("context_tokens"),
+                    "history_tokens": row.get("history_tokens"),
+                    "query_tokens": row.get("query_tokens")
+                }
+            })
         return {"messages": messages}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

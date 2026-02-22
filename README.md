@@ -73,7 +73,7 @@ The application requires three main tables:
 
 - `chats`: Stores session metadata (`chat_id`, `user_id`, `title`).
 - `chat_documents`: Links files to sessions (`conversation_id`, `file_name`, `file_type`).
-- `chat_messages`: Stores the Q&A history (`question`, `answer`, `tokens`).
+- `chat_messages`: Stores the Q&A history, including detailed token analytics (`prompt_tokens`, `completion_tokens`, `total_tokens`, `reasoning_tokens`, `context_tokens`, `history_tokens`, `query_tokens`) and the `model_used`.
 
 ### Configuration
 
