@@ -1,4 +1,4 @@
-#!C:\Programming\NSE\DocChat\docchat-backend\venv\Scripts\python.exe
+#!C:\Programming\SELF\0Web\DocChat\backend\venv\Scripts\python.exe
 
 ##############################################################################
 #
