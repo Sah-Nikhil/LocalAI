@@ -10,11 +10,10 @@ QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
 
 client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
-
 def create_collection_if_not_exists(collection_name: str, vector_size: int):
     existing_collections = [c.name for c in client.get_collections().collections]
     if collection_name not in existing_collections:
-        client.recreate_collection(
+        client.create_collection(
             collection_name=collection_name,
             vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
         )
@@ -34,9 +33,9 @@ def store_vectors(collection_name: str, vectors: list[dict]):
     client.upsert(collection_name=collection_name, points=points)
 
 def search_vectors(collection_name: str, query_vector: list[float], limit: int = 5):
-    search_result = client.search(
+    search_result = client.query_points(
         collection_name=collection_name,
-        query_vector=query_vector,
+        query=query_vector,
         limit=limit,
     )
 
@@ -46,7 +45,7 @@ def search_vectors(collection_name: str, query_vector: list[float], limit: int =
             "score": point.score,
             "text": point.payload.get("text", "") if point.payload else ""
         }
-        for point in search_result
+        for point in search_result.points
     ]
 
 def get_all_vectors(collection_name: str):
