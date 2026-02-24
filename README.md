@@ -46,7 +46,7 @@ graph TD
     Backend <--> Ollama[Ollama - Local AI Models]
 ```
 
-- **Frontend**: Next.js 15, TypeScript, Tailwind CSS, Zustand (state management).
+- **Frontend**: Next.js 16, TypeScript, Tailwind CSS v4, Zustand (state management).
 - **Backend**: FastAPI (Python), Document parsing (PyMuPDF, python-docx, etc.), RAG logic.
 - **Storage**: Supabase (PostgreSQL) for structured data; Qdrant for vector embeddings.
 - **AI Engine**: Ollama (compatible with OpenAI-like API).
@@ -78,6 +78,7 @@ The application requires three main tables:
 ### Configuration
 
 Managed via `backend/config.yaml`:
+`(This file defines the **default** models and hosts, which can be overridden via the UI's model selector.)`
 
 ```yaml
 llm:
@@ -89,6 +90,8 @@ vlm:
 embedding:
   model_name: nomic-embed-text
 ```
+
+Infrastructure settings like Supabase and Qdrant credentials are managed via the `.env` file in the `backend` directory.
 
 ### Backend Setup & Running
 
