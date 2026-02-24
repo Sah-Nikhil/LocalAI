@@ -33,6 +33,11 @@ def store_vectors(collection_name: str, vectors: list[dict]):
     client.upsert(collection_name=collection_name, points=points)
 
 def search_vectors(collection_name: str, query_vector: list[float], limit: int = 5):
+    # Check if collection exists first
+    existing_collections = [c.name for c in client.get_collections().collections]
+    if collection_name not in existing_collections:
+        return []
+
     search_result = client.query_points(
         collection_name=collection_name,
         query=query_vector,
@@ -50,6 +55,11 @@ def search_vectors(collection_name: str, query_vector: list[float], limit: int =
 
 def get_all_vectors(collection_name: str):
     """Fetches all stored chunks from Qdrant for a conversation/document."""
+    # Check if collection exists first
+    existing_collections = [c.name for c in client.get_collections().collections]
+    if collection_name not in existing_collections:
+        return []
+
     scroll_result = client.scroll(
         collection_name=collection_name,
         limit=1000,  # Adjust or paginate if you need more

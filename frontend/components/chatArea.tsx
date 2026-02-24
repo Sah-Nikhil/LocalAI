@@ -23,6 +23,7 @@ export default function MainChatArea() {
     const [showTokenStats, setShowTokenStats] = useState(true);
     const [expandedTokens, setExpandedTokens] = useState<Set<number>>(new Set());
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -99,6 +100,10 @@ export default function MainChatArea() {
         const userMessage: Message = { role: "user", text: input };
         setMessages((prev) => [...prev, userMessage]);
         setInput("");
+        // Reset textarea height back to one line
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "auto";
+        }
         setLoading(true);
 
         try {
@@ -175,7 +180,7 @@ export default function MainChatArea() {
     return (
         <div className="relative flex flex-col h-full bg-background/50">
             {/* Chat messages */}
-            <div className="flex-1 overflow-y-auto w-full h-full p-4 pt-3 pb-36 space-y-4 scroll-smooth">
+            <div className="flex-1 overflow-y-auto w-full h-full p-4 pt-3 pb-52 space-y-4 scroll-smooth">
                 {messages.length === 0 && (
                     <div className="dark:bg-accent/50 bg-accent/75 p-6 rounded-2xl max-w-md mx-auto mt-10 text-muted-foreground flex justify-center shadow-md ">
                         <p>Hello! Upload a document and ask your question.</p>
@@ -294,6 +299,7 @@ export default function MainChatArea() {
                     {/* Input area */}
                     <div className="w-full flex gap-3 p-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border shadow-2xl rounded-3xl pl-6 pr-2 items-center ring-1 ring-border/50">
                         <textarea
+                            ref={textareaRef}
                             placeholder="Type a message..."
                             className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none py-3 text-base resize-none min-h-[24px] max-h-[150px] outline-none"
                             value={input}
@@ -310,7 +316,7 @@ export default function MainChatArea() {
                         <Button
                             onClick={handleSend}
                             disabled={loading || !input.trim()}
-                            className="rounded-full h-10 w-10 p-0 shrink-0 shadow-sm transition-transform active:scale-95"
+                            className="rounded-full h-10 w-10 p-0 shrink-0 shadow-sm transition-transform active:scale-95 cursor-pointer"
                             size="icon"
                         >
                             <Send className="-ml-0.5" />

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArchiveX, Command, File, Inbox, PlusCircleIcon, Send, Trash2 } from "lucide-react"
+import { ArchiveX, Command, File, Inbox, InboxIcon, PlusCircleIcon, Send, Trash2 } from "lucide-react"
 import { deleteChatSession } from "@/hooks/useChat"
 import { useChatContext } from "@/hooks/useChatContext";
 
@@ -34,7 +34,7 @@ const data = {
     {
       title: "Current Chat",
       url: "/",
-      icon: File,
+      icon: InboxIcon,
       isActive: false,
     },
     {
