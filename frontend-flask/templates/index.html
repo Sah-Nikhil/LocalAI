@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">DocChat</p>
+      <h1>My Spaces</h1>
+    </div>
+    <div class="header-actions">
+      <button class="icon-button" type="button" data-theme-toggle aria-label="Toggle theme">☾</button>
+      <form method="post" action="{{ url_for('create_chat') }}">
+        <button class="button primary" type="submit">New Space</button>
+      </form>
+    </div>
+  </header>
+
+  {% if backend_error %}
+    <section class="alert panel">Could not load chat list: {{ backend_error }}</section>
+  {% endif %}
+
+  <main class="dashboard">
+    {% if chats %}
+      <section class="cards-grid">
+        {% for chat in chats %}
+          <article class="space-card panel">
+            <a class="space-link" href="{{ url_for('chat_page', chat_id=chat.chat_id) }}">
+              <div class="space-card-head">
+                <div class="space-card-body">
+                  <h2>{{ chat.title or "Untitled Chat" }}</h2>
+                  <p class="muted">
+                    {% if chat.file_name %}
+                      📄 {{ chat.file_name }}
+                    {% else %}
+                      No files yet
+                    {% endif %}
+                  </p>
+                </div>
+                <span class="muted">{{ chat.created_at | display_date }}</span>
+              </div>
+            </a>
+            <div class="space-card-actions">
+              <form method="post" action="{{ url_for('delete_chat', chat_id=chat.chat_id) }}" onsubmit="return confirm('Delete this space?')">
+                <button class="button ghost danger" type="submit">Delete</button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
+      </section>
+    {% else %}
+      <section class="empty-state panel">
+        <h2>No spaces yet</h2>
+        <p class="muted">Start by creating one and uploading your first document.</p>
+        <form method="post" action="{{ url_for('create_chat') }}">
+          <button class="button primary" type="submit">Create Your First Space</button>
+        </form>
+      </section>
+    {% endif %}
+  </main>
+{% endblock %}

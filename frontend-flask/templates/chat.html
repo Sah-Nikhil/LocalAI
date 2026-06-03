@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">DocChat</p>
+      <h1>Chat Space</h1>
+    </div>
+    <div class="header-actions">
+      <button class="icon-button" type="button" data-theme-toggle aria-label="Toggle theme">☾</button>
+    </div>
+  </header>
+
+  <div class="chat-layout">
+    <aside class="panel sidebar">
+      <div class="sidebar-header">
+        <p class="eyebrow">Spaces</p>
+        <form method="post" action="{{ url_for('create_chat') }}">
+          <button class="button primary small" type="submit">New Space</button>
+        </form>
+      </div>
+
+      <div class="nav-list">
+        {% for chat in chats %}
+          <a class="nav-item {% if chat.chat_id == active_chat_id %}active{% endif %}" href="{{ url_for('chat_page', chat_id=chat.chat_id) }}">
+            <strong>{{ chat.title or "Untitled Chat" }}</strong>
+            <span class="muted">{{ chat.created_at | display_date }}</span>
+          </a>
+        {% else %}
+          <p class="muted">No saved spaces yet.</p>
+        {% endfor %}
+      </div>
+
+      <form method="post" action="{{ url_for('delete_chat', chat_id=chat_id) }}" onsubmit="return confirm('Delete this space?')" class="sidebar-footer">
+        <button class="button ghost danger full" type="submit">Delete Space</button>
+      </form>
+    </aside>
+
+    <section class="panel chat-panel">
+      <header class="chat-header">
+        <div>
+          <p class="eyebrow">DocChat</p>
+          <h1>Chat Space</h1>
+        </div>
+        <div class="model-row">
+          <div class="tabs" role="tablist" aria-label="Model category">
+            <button type="button" class="tab active" data-model-tab="llm">Text Models</button>
+            <button type="button" class="tab" data-model-tab="vlm">Vision Models</button>
+          </div>
+          <select id="model-select" class="select"></select>
+        </div>
+      </header>
+
+      {% if backend_errors %}
+        <div class="alert-stack">
+          {% for error in backend_errors %}
+            <div class="alert">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div id="messages" class="messages" aria-live="polite"></div>
+
+      <div class="composer">
+        <div class="composer-meta">
+          <label class="toggle">
+            <span>Show tokens</span>
+            <input id="show-tokens" type="checkbox" checked />
+          </label>
+          <div class="muted" id="model-default"></div>
+        </div>
+        <div class="composer-box">
+          <textarea id="message-input" rows="1" placeholder="Type a message..."></textarea>
+          <button id="send-message" class="button primary" type="button">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel uploads-panel">
+      <section>
+        <p class="eyebrow">Files Uploaded</p>
+        <div id="processed-files" class="file-list"></div>
+      </section>
+
+      <section class="uploads-section">
+        <p class="eyebrow">Upload Files</p>
+        <div id="queued-files" class="file-list"></div>
+        <button id="process-files" class="button primary full" type="button">Process Files</button>
+        <label class="upload-dropzone" for="file-input">
+          <input id="file-input" type="file" multiple hidden />
+          <span>Drop files here or click to choose</span>
+        </label>
+      </section>
+    </aside>
+  </div>
+
+  <script id="initial-state" type="application/json">{{ initial_state | tojson }}</script>
+{% endblock %}
