@@ -1,6 +1,6 @@
 # DocChat: Local AI Document Chat Platform
 
-DocChat is a full-stack application that enables users to upload documents (PDF, Word, PowerPoint, Markdown, Text) and chat with them using local AI. I t leverages local LLMs for retrieval-augmented generation (RAG), featuring persistent chat sessions, advanced token tracking, and seamless integration between a Next.js frontend and a FastAPI backend.
+DocChat is a full-stack application that enables users to upload documents (PDF, Word, PowerPoint, Markdown, Text) and chat with them using local AI. It leverages local LLMs for retrieval-augmented generation (RAG), featuring persistent chat sessions, advanced token tracking, and seamless integration between a Next.js frontend and a FastAPI backend.
 
 ---
  
